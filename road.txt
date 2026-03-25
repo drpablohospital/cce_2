@@ -36,3 +36,4 @@ venv\Scripts\activate.bat
 .\venv\Scripts\activate
 iniciar ngrok
 luego python.py
+SQL RENDER: postgresql://cce_db_user:mZTctd93CYPWRM618nYZE2b6NEjW1P3u@dpg-d71jvaea2pns73f8oql0-a/cce_db

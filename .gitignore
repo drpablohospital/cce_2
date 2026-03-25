@@ -29,6 +29,7 @@ config.local.py
 # Variables de entorno
 .env
 .env.local
+road.txt
 
 # Archivos de editor
 .vscode/

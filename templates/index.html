@@ -4,7 +4,7 @@
 <!-- Modal con cartel -->
 <div id="cartelModal" class="modal">
     <div class="modal-content">
-        <img src="{{ url_for('static', filename='images/cartel.png') }}" alt="Cartel del evento">
+        <img src="{{ url_for('static', filename='images/cartel.webp') }}" alt="Cartel del evento">
         <button id="closeModalBtn" class="close-modal">Ver más</button>
     </div>
 </div>
@@ -15,7 +15,7 @@
         <div class="glass-card">
             <!-- Logo grande arriba -->
             <div class="flex justify-center mb-8">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Clinical Care Experience" class="h-24 md:h-32 w-auto">
+                <img src="{{ url_for('static', filename='images/logo.webp') }}" alt="Clinical Care Experience" class="h-24 md:h-32 w-auto">
             </div>
 
             <!-- Dos columnas: izquierda texto, derecha carrusel -->
@@ -92,7 +92,7 @@
         carouselImages.push(`/static/images/carrusel/${i}.jpg`);
     }
     if (carouselImages.length === 0) {
-        carouselImages.push('/static/images/cartel.png');
+        carouselImages.push('/static/images/cartel.webp');
     }
     let currentIndex = 0;
     const imgElement = document.querySelector('.carousel-images img');

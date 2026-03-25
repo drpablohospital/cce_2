@@ -42,7 +42,7 @@ def generate_qr(registration_id):
     qr.add_data(f"http://localhost:5000/verify/{registration_id}")  # Cambiar en producción
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")
-    filename = f"qr_{registration_id}.png"
+    filename = f"qr_{registration_id}.webp"
     qrcode_dir = os.path.join(app.static_folder, 'qrcodes')
     os.makedirs(qrcode_dir, exist_ok=True)
     path = os.path.join(qrcode_dir, filename)
@@ -106,15 +106,15 @@ def generate_certificate(registration_id):
 # ------------------------- RUTAS -------------------------
 @app.route('/')
 def index():
-    return render_template('index.html', background_image=url_for('static', filename='images/fondo1.png'))
+    return render_template('index.html', background_image=url_for('static', filename='images/fondo1.webp'))
 
 @app.route('/program')
 def program():
-    return render_template('program.html', background_image=url_for('static', filename='images/fondo2.png'))
+    return render_template('program.html', background_image=url_for('static', filename='images/fondo2.webp'))
 
 @app.route('/info')
 def info():
-    return render_template('info.html', background_image=url_for('static', filename='images/fondo1.png'))
+    return render_template('info.html', background_image=url_for('static', filename='images/fondo1.webp'))
 
 @app.route('/purchase', methods=['GET', 'POST'])
 def purchase():
@@ -212,20 +212,20 @@ def purchase():
             flash(f'Error creating payment session: {str(e)}', 'danger')
             return redirect(url_for('purchase'))
 
-    return render_template('purchase.html', background_image=url_for('static', filename='images/fondo3.png'))
+    return render_template('purchase.html', background_image=url_for('static', filename='images/fondo3.webp'))
 
 @app.route('/success/<int:registration_id>')
 def success(registration_id):
     reg = Registration.query.get_or_404(registration_id)
     if reg.payment_status != 'paid':
         flash('Tu pago se está verificando. El código QR aparecerá en breve.', 'info')
-        return render_template('success.html', registration=reg, qr_path=None, background_image=url_for('static', filename='images/fondo4.png'))
+        return render_template('success.html', registration=reg, qr_path=None, background_image=url_for('static', filename='images/fondo4.webp'))
     else:
-        return render_template('success.html', registration=reg, qr_path=reg.qr_code_path, background_image=url_for('static', filename='images/fondo4.png'))
+        return render_template('success.html', registration=reg, qr_path=reg.qr_code_path, background_image=url_for('static', filename='images/fondo4.webp'))
 
 @app.route('/cancel')
 def cancel():
-    return render_template('cancel.html', background_image=url_for('static', filename='images/fondo5.png'))
+    return render_template('cancel.html', background_image=url_for('static', filename='images/fondo5.webp'))
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -295,7 +295,7 @@ def verify(registration_id):
         'course': reg.course,
         'amount': reg.amount / 100
     }
-    return render_template('verify.html', info=info, registration=reg, background_image=url_for('static', filename='images/fondo1.png'))
+    return render_template('verify.html', info=info, registration=reg, background_image=url_for('static', filename='images/fondo1.webp'))
 
 @app.route('/contact', methods=['POST'])
 def contact():
