@@ -9,8 +9,9 @@ from models import db, User, Registration, NewsletterSubscriber, ContactMessage
 from datetime import datetime
 import io
 from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
+from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib.utils import ImageReader
+from reportlab.lib.units import mm, cm
 from PIL import Image
 
 app = Flask(__name__)
@@ -22,8 +23,8 @@ db.init_app(app)
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'medicinacriticasjdr@gmail.com'  # Cambia por tu correo
-app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')  # Contraseña de aplicación
+app.config['MAIL_USERNAME'] = 'medicinacriticasjdr@gmail.com'
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 mail = Mail(app)
 
 stripe.api_key = app.config['STRIPE_SECRET_KEY']
@@ -33,70 +34,143 @@ with app.app_context():
 
 # ------------------------- HELPER FUNCTIONS -------------------------
 def generate_qr(registration_id):
+    """Genera el código QR con la URL completa del dominio."""
+    base_url = os.environ.get('BASE_URL')
+    if not base_url:
+        base_url = request.host_url if request else 'http://localhost:5000'
+    if not base_url.endswith('/'):
+        base_url += '/'
+
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_L,
         box_size=10,
         border=4,
     )
-    qr.add_data(f"http://localhost:5000/verify/{registration_id}")  # Cambiar en producción
+    qr.add_data(f"{base_url}verify/{registration_id}")
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")
-    filename = f"qr_{registration_id}.webp"
+    filename = f"qr_{registration_id}.png"
     qrcode_dir = os.path.join(app.static_folder, 'qrcodes')
     os.makedirs(qrcode_dir, exist_ok=True)
     path = os.path.join(qrcode_dir, filename)
     img.save(path)
     return f"static/qrcodes/{filename}"
 
+def send_virtual_instructions(email, name):
+    """Envía correo con instrucciones para el acceso virtual."""
+    msg = Message('Instrucciones para acceso virtual - Critical Care Experience',
+                  sender=app.config['MAIL_USERNAME'],
+                  recipients=[email])
+    msg.body = f"""
+Hola {name},
+
+Gracias por registrarte al Critical Care Experience.
+
+Has seleccionado la modalidad VIRTUAL para el Día 1. El acceso a la transmisión en vivo será a través de la siguiente plataforma:
+
+[Enlace de Zoom/YouTube]
+
+Fecha: 1 de mayo 2026
+Horario: 8:30 - 17:40
+
+Recuerda que tu código QR es tu credencial digital; lo necesitarás para acceder al evento virtual.
+
+Si tienes dudas, responde a este correo.
+
+¡Te esperamos!
+Equipo Critical Care Experience
+"""
+    try:
+        mail.send(msg)
+    except Exception as e:
+        app.logger.error(f"Error enviando email a {email}: {e}")
+
 def generate_certificate(registration_id):
+    """Genera un PDF tipo credencial con fondo personalizado (1536x2048)."""
     reg = Registration.query.get(registration_id)
-    if not reg:
+    if not reg or reg.payment_status != 'paid':
         return None
+
     user = User.query.get(reg.user_id)
+
+    # Ruta de la imagen de fondo
+    bg_path = os.path.join(app.static_folder, 'images', 'credential_bg.webp')
+    if not os.path.exists(bg_path):
+        # fallback a PNG si no existe
+        bg_path = os.path.join(app.static_folder, 'images', 'credential_bg.png')
+
+    # Dimensiones de la imagen (asumimos 1536x2048, pero las obtendremos de la imagen real)
+    try:
+        img = Image.open(bg_path)
+        img_width, img_height = img.size
+    except Exception:
+        # Si no se puede abrir la imagen, usar dimensiones por defecto
+        img_width, img_height = 1536, 2048
+
+    # Crear canvas con las mismas dimensiones (en puntos, 1 pixel = 1 punto a 72 DPI)
+    width, height = img_width, img_height
     buffer = io.BytesIO()
-    c = canvas.Canvas(buffer, pagesize=letter)
-    width, height = letter
+    c = canvas.Canvas(buffer, pagesize=(width, height))
 
-    c.setFont("Helvetica-Bold", 24)
-    c.drawCentredString(width/2, height-100, "Certificate of Attendance")
-    c.setFont("Helvetica", 16)
-    c.drawCentredString(width/2, height-150, f"This certifies that")
-    c.setFont("Helvetica-Bold", 20)
-    c.drawCentredString(width/2, height-200, user.name)
-    c.setFont("Helvetica", 14)
-    c.drawCentredString(width/2, height-250, f"has attended the Clinical Care Experience congress")
+    # Dibujar fondo
+    c.drawImage(bg_path, 0, 0, width=width, height=height, preserveAspectRatio=True, anchor='c')
 
-    days_text = ""
+    # Definir posiciones como porcentajes relativos al tamaño de la imagen
+    # Ajusta estos valores según el diseño de tu fondo
+    name_x = width * 0.15
+    name_y = height * 0.7
+    role_x = width * 0.15
+    role_y = height * 0.63
+    tickets_x = width * 0.15
+    tickets_y = height * 0.53
+    qr_x = width * 0.7
+    qr_y = height * 0.1
+    qr_size = width * 0.2  # 20% del ancho
+
+    # Configurar fuente (tamaño relativo al ancho de la imagen)
+    c.setFont("Helvetica-Bold", width * 0.025)
+    c.setFillColorRGB(0, 0, 0)
+
+    # Nombre
+    c.drawString(name_x, name_y, f"Nombre: {user.name}")
+
+    # Rol
+    role_str = {
+        "specialist": "Especialista",
+        "student": "Estudiante",
+        "nurse": "Enfermero/a",
+        "physio": "Fisioterapeuta"
+    }.get(user.role, user.role)
+    c.drawString(role_x, role_y, f"Rol: {role_str}")
+
+    # Lista de eventos pagados
+    items = []
     if reg.days == "day1":
-        days_text = "Day 1 only"
-        if reg.day1_virtual:
-            days_text += " (Virtual)"
-        else:
-            days_text += " (Presencial)"
+        modality = "Virtual" if reg.day1_virtual else "Presencial"
+        items.append(f"Día 1 (Conferencias) - {modality}")
     elif reg.days == "day2":
-        days_text = "Day 2 only (Presencial)"
+        items.append("Día 2 (Talleres) - Presencial")
     elif reg.days == "both":
-        days_text = "Both days"
-        if reg.day1_virtual:
-            days_text += " - Day 1 Virtual, Day 2 Presencial"
-        else:
-            days_text += " - Both days Presencial"
-    else:
-        days_text = "No days selected (only course)"
-    c.drawCentredString(width/2, height-280, f"Ticket: {days_text}")
-
+        modality = "Virtual" if reg.day1_virtual else "Presencial"
+        items.append(f"Día 1 (Conferencias) - {modality}")
+        items.append("Día 2 (Talleres) - Presencial")
     if reg.course:
-        c.drawCentredString(width/2, height-310, "Additional Course: Yes")
+        items.append("Curso de Fisioterapia")
 
-    amount_pesos = reg.amount / 100
-    c.drawCentredString(width/2, height-340, f"Amount paid: ${amount_pesos:.2f} MXN")
+    if items:
+        c.setFont("Helvetica", width * 0.02)
+        c.drawString(tickets_x, tickets_y, "Eventos incluidos:")
+        y_offset = tickets_y - (height * 0.04)
+        for item in items:
+            c.drawString(tickets_x, y_offset, item)
+            y_offset -= height * 0.03
 
+    # Insertar código QR
     if reg.qr_code_path:
         qr_full_path = os.path.join(app.root_path, reg.qr_code_path)
         if os.path.exists(qr_full_path):
-            img_reader = ImageReader(qr_full_path)
-            c.drawImage(img_reader, width-120, height-120, width=100, height=100)
+            c.drawImage(ImageReader(qr_full_path), qr_x, qr_y, width=qr_size, height=qr_size)
 
     c.showPage()
     c.save()
@@ -193,7 +267,7 @@ def purchase():
                         'currency': 'mxn',
                         'unit_amount': amount,
                         'product_data': {
-                            'name': f'Clinical Care Experience',
+                            'name': f'Critical Care Experience',
                         },
                     },
                     'quantity': 1,
@@ -249,6 +323,12 @@ def webhook():
             qr_path = generate_qr(reg.id)
             reg.qr_code_path = qr_path
             db.session.commit()
+
+            # Enviar correo si es virtual
+            if reg.day1_virtual and reg.days in ('day1', 'both'):
+                user = User.query.get(reg.user_id)
+                send_virtual_instructions(user.email, user.name)
+
     return '', 200
 
 @app.route('/certificate/<int:registration_id>')
@@ -304,14 +384,12 @@ def contact():
     email = request.form.get('email')
     mensaje = request.form.get('mensaje')
 
-    # Guardar en BD
     msg_db = ContactMessage(nombre=nombre, telefono=telefono, email=email, mensaje=mensaje)
     db.session.add(msg_db)
     db.session.commit()
 
-    # Enviar correo
     try:
-        msg = Message('Nuevo mensaje desde Clinical Care Experience',
+        msg = Message('Nuevo mensaje desde Critical Care Experience',
                       sender=app.config['MAIL_USERNAME'],
                       recipients=['medicinacriticasjdr@gmail.com'])
         msg.body = f"""

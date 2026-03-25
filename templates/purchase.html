@@ -1,10 +1,27 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto px-4 py-12">
+<div class="max-w-4xl mx-auto px-4 py-12">
     <div class="glass-card">
         <h1 class="text-3xl font-bold mb-8 text-center">Registro y selección de entradas</h1>
-        <form method="POST" action="/purchase" class="space-y-6">
+
+        <!-- Mensaje de cupo limitado -->
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-yellow-700">
+                        <strong>⚠️ Cupo limitado:</strong> El evento y los talleres tienen aforo restringido. Las inscripciones se cerrarán automáticamente al alcanzar el cupo máximo. ¡Asegura tu lugar!
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <form method="POST" action="/purchase" id="registrationForm" class="space-y-6">
             <div>
                 <label class="block text-sm font-medium text-gray-700">Nombre completo</label>
                 <input type="text" name="name" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
@@ -15,7 +32,7 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700">Perfil</label>
-                <select name="role" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                <select name="role" id="roleSelect" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
                     <option value="specialist">Especialista</option>
                     <option value="student">Estudiante</option>
                     <option value="nurse">Enfermero/a</option>
@@ -32,12 +49,12 @@
                         <span class="ml-2">Día 1 (Conferencias)</span>
                     </label>
                     <div id="day1Options" class="ml-6 mt-1 space-x-4" style="display: none;">
-                        <label><input type="radio" name="day1_modality" value="presencial"> Presencial</label>
-                        <label><input type="radio" name="day1_modality" value="virtual"> Virtual</label>
+                        <label><input type="radio" name="day1_modality" value="presencial" id="day1Presencial" checked> Presencial</label>
+                        <label><input type="radio" name="day1_modality" value="virtual" id="day1Virtual"> Virtual</label>
                     </div>
                     <br>
                     <label class="inline-flex items-center">
-                        <input type="checkbox" name="day2" value="1">
+                        <input type="checkbox" name="day2" value="1" id="day2Checkbox">
                         <span class="ml-2">Día 2 (Talleres presenciales)</span>
                     </label>
                 </div>
@@ -46,9 +63,28 @@
             <!-- Curso adicional -->
             <div>
                 <label class="inline-flex items-center">
-                    <input type="checkbox" name="course" value="course">
+                    <input type="checkbox" name="course" value="course" id="courseCheckbox">
                     <span class="ml-2">Curso de Fisioterapia (adicional, $6 MXN)</span>
                 </label>
+            </div>
+
+            <!-- Tarjeta de precios dinámica -->
+            <div class="mt-6 bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Resumen de tu compra</h3>
+                <div class="flex justify-between items-baseline">
+                    <span class="text-gray-600">Total a pagar:</span>
+                    <div class="text-right">
+                        <span id="precioOriginal" class="text-gray-400 line-through text-sm mr-2" style="display: none;">$0.00</span>
+                        <span id="precioFinal" class="text-2xl font-bold text-indigo-600">$0.00 MXN</span>
+                    </div>
+                </div>
+                <div id="ofertaMensaje" class="mt-2 text-xs text-green-600 font-medium" style="display: none;">
+                    🎉 ¡Beca limitada! Precio promocional por ser de los primeros inscritos.
+                </div>
+                <div class="mt-3 text-xs text-gray-500">
+                    * Los precios ya incluyen el descuento por perfil (70% para estudiantes, enfermeros y fisioterapeutas).<br>
+                    * Cupos limitados, sujeta a disponibilidad.
+                </div>
             </div>
 
             <div class="pt-4">
@@ -59,14 +95,116 @@
 </div>
 
 <script>
+    // Precios base (en centavos)
+    const PRECIOS_BASE = {
+        'day1_presencial': 1000,   // 10 pesos
+        'day1_virtual': 700,       // 7 pesos
+        'day2': 800,               // 8 pesos
+        'course': 600              // 6 pesos
+    };
+
+    // Factor de descuento por perfil (especialista 1.0, otros 0.7)
+    const DESCUENTO_PERFIL = {
+        'specialist': 1.0,
+        'student': 0.7,
+        'nurse': 0.7,
+        'physio': 0.7
+    };
+
+    // Elementos del DOM
     const day1Checkbox = document.getElementById('day1Checkbox');
-    const day1Options = document.getElementById('day1Options');
+    const day2Checkbox = document.getElementById('day2Checkbox');
+    const courseCheckbox = document.getElementById('courseCheckbox');
+    const roleSelect = document.getElementById('roleSelect');
+    const day1Presencial = document.getElementById('day1Presencial');
+    const day1Virtual = document.getElementById('day1Virtual');
+    const day1OptionsDiv = document.getElementById('day1Options');
+
+    // Mostrar/ocultar opciones de modalidad del día 1
     day1Checkbox.addEventListener('change', function() {
-        if (this.checked) {
-            day1Options.style.display = 'block';
-        } else {
-            day1Options.style.display = 'none';
-        }
+        day1OptionsDiv.style.display = this.checked ? 'block' : 'none';
+        actualizarPrecio();
     });
+    day1Presencial.addEventListener('change', actualizarPrecio);
+    day1Virtual.addEventListener('change', actualizarPrecio);
+    day2Checkbox.addEventListener('change', actualizarPrecio);
+    courseCheckbox.addEventListener('change', actualizarPrecio);
+    roleSelect.addEventListener('change', actualizarPrecio);
+
+    function actualizarPrecio() {
+        const role = roleSelect.value;
+        const descuento = DESCUENTO_PERFIL[role];
+        const day1 = day1Checkbox.checked;
+        const day2 = day2Checkbox.checked;
+        const course = courseCheckbox.checked;
+        const day1VirtualSelected = day1Virtual.checked;
+
+        let totalCentavos = 0;
+        let totalOriginalCentavos = 0; // precio sin descuento de perfil (para mostrar oferta)
+
+        // Calcular precio base de días
+        if (day1 && day2) {
+            const precioDay1 = day1VirtualSelected ? PRECIOS_BASE['day1_virtual'] : PRECIOS_BASE['day1_presencial'];
+            totalCentavos += precioDay1;
+            totalCentavos += PRECIOS_BASE['day2'];
+            totalOriginalCentavos += precioDay1 + PRECIOS_BASE['day2'];
+        } else if (day1) {
+            const precioDay1 = day1VirtualSelected ? PRECIOS_BASE['day1_virtual'] : PRECIOS_BASE['day1_presencial'];
+            totalCentavos += precioDay1;
+            totalOriginalCentavos += precioDay1;
+        } else if (day2) {
+            totalCentavos += PRECIOS_BASE['day2'];
+            totalOriginalCentavos += PRECIOS_BASE['day2'];
+        }
+
+        // Aplicar descuento por perfil a los días
+        if (totalCentavos > 0) {
+            const precioConDescuento = Math.round(totalCentavos * descuento);
+            totalCentavos = precioConDescuento;
+            totalOriginalCentavos = totalOriginalCentavos; // el original ya es sin descuento
+        } else {
+            totalOriginalCentavos = 0;
+        }
+
+        // Agregar curso (no tiene descuento)
+        if (course) {
+            totalCentavos += PRECIOS_BASE['course'];
+            totalOriginalCentavos += PRECIOS_BASE['course'];
+        }
+
+        // Si no se selecciona ningún día pero sí curso, mostrar solo curso
+        if (!day1 && !day2 && course) {
+            totalCentavos = PRECIOS_BASE['course'];
+            totalOriginalCentavos = PRECIOS_BASE['course'];
+        }
+
+        // Mostrar precios
+        const precioFinalSpan = document.getElementById('precioFinal');
+        const precioOriginalSpan = document.getElementById('precioOriginal');
+        const ofertaDiv = document.getElementById('ofertaMensaje');
+
+        const montoFinal = (totalCentavos / 100).toFixed(2);
+        precioFinalSpan.textContent = `$${montoFinal} MXN`;
+
+        // Si hay selección, mostrar el precio original tachado si es mayor (solo si hay descuento por perfil)
+        if (totalCentavos > 0 && totalOriginalCentavos > totalCentavos && role !== 'specialist') {
+            const montoOriginal = (totalOriginalCentavos / 100).toFixed(2);
+            precioOriginalSpan.style.display = 'inline';
+            precioOriginalSpan.textContent = `$${montoOriginal}`;
+            ofertaDiv.style.display = 'block';
+        } else {
+            precioOriginalSpan.style.display = 'none';
+            ofertaDiv.style.display = 'none';
+        }
+
+        // Si no hay selección, mostrar 0
+        if (totalCentavos === 0) {
+            precioOriginalSpan.style.display = 'none';
+            ofertaDiv.style.display = 'none';
+        }
+    }
+
+    // Inicializar
+    actualizarPrecio();
 </script>
 {% endblock %}
