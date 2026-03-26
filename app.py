@@ -1,7 +1,9 @@
 import os
 import stripe
 import qrcode
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file
+import random
+from glob import glob
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
 from config import Config
@@ -33,6 +35,20 @@ with app.app_context():
     db.create_all()
 
 # ------------------------- HELPER FUNCTIONS -------------------------
+def get_random_background():
+    """Devuelve la URL de una imagen de fondo aleatoria de static/images/ que empiece con 'fondo'."""
+    bg_folder = os.path.join(app.static_folder, 'images')
+    patterns = ['fondo*', 'Fondo*']
+    backgrounds = []
+    for pattern in patterns:
+        backgrounds.extend(glob(os.path.join(bg_folder, pattern)))
+    if not backgrounds:
+        # fallback si no hay imágenes de fondo
+        return url_for('static', filename='images/fondo1.webp')
+    chosen = random.choice(backgrounds)
+    rel_path = os.path.relpath(chosen, app.static_folder).replace('\\', '/')
+    return url_for('static', filename=rel_path)
+
 def generate_qr(registration_id):
     """Genera el código QR con la URL completa del dominio."""
     base_url = os.environ.get('BASE_URL')
@@ -178,15 +194,15 @@ def generate_certificate(registration_id):
 # ------------------------- RUTAS -------------------------
 @app.route('/')
 def index():
-    return render_template('index.html', background_image=url_for('static', filename='images/fondo1.webp'))
+    return render_template('index.html', background_image=get_random_background())
 
 @app.route('/program')
 def program():
-    return render_template('program.html', background_image=url_for('static', filename='images/fondo2.webp'))
+    return render_template('program.html', background_image=get_random_background())
 
 @app.route('/info')
 def info():
-    return render_template('info.html', background_image=url_for('static', filename='images/fondo1.webp'))
+    return render_template('info.html', background_image=get_random_background())
 
 @app.route('/purchase', methods=['GET', 'POST'])
 def purchase():
@@ -284,20 +300,20 @@ def purchase():
             flash(f'Error creating payment session: {str(e)}', 'danger')
             return redirect(url_for('purchase'))
 
-    return render_template('purchase.html', background_image=url_for('static', filename='images/fondo3.webp'))
+    return render_template('purchase.html', background_image=get_random_background())
 
 @app.route('/success/<int:registration_id>')
 def success(registration_id):
     reg = Registration.query.get_or_404(registration_id)
     if reg.payment_status != 'paid':
         flash('Tu pago se está verificando. El código QR aparecerá en breve.', 'info')
-        return render_template('success.html', registration=reg, qr_path=None, background_image=url_for('static', filename='images/fondo4.webp'))
+        return render_template('success.html', registration=reg, qr_path=None, background_image=get_random_background())
     else:
-        return render_template('success.html', registration=reg, qr_path=reg.qr_code_path, background_image=url_for('static', filename='images/fondo4.webp'))
+        return render_template('success.html', registration=reg, qr_path=reg.qr_code_path, background_image=get_random_background())
 
 @app.route('/cancel')
 def cancel():
-    return render_template('cancel.html', background_image=url_for('static', filename='images/fondo5.webp'))
+    return render_template('cancel.html', background_image=get_random_background())
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -373,7 +389,7 @@ def verify(registration_id):
         'course': reg.course,
         'amount': reg.amount / 100
     }
-    return render_template('verify.html', info=info, registration=reg, background_image=url_for('static', filename='images/fondo1.webp'))
+    return render_template('verify.html', info=info, registration=reg, background_image=get_random_background())
 
 @app.route('/contact', methods=['POST'])
 def contact():
@@ -402,6 +418,19 @@ def contact():
         flash('Hubo un error al enviar el mensaje. Por favor inténtalo más tarde.', 'danger')
         print(e)
     return redirect(request.referrer or url_for('index'))
+
+@app.route('/carousel-images')
+def carousel_images():
+    """Endpoint para obtener las imágenes del carrusel dinámicamente."""
+    carousel_dir = os.path.join(app.static_folder, 'images', 'carrusel')
+    if not os.path.exists(carousel_dir):
+        return jsonify([])
+    extensions = {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
+    images = []
+    for filename in os.listdir(carousel_dir):
+        if os.path.splitext(filename)[1].lower() in extensions:
+            images.append(url_for('static', filename=f'images/carrusel/{filename}'))
+    return jsonify(images)
 
 if __name__ == '__main__':
     app.run(debug=True)
