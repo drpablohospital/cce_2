@@ -216,10 +216,10 @@ def purchase():
         day1_virtual = request.form.get('day1_modality') == 'virtual' if day1 else False
 
         PRICES = {
-            'day1_presencial': 2000,
-            'day1_virtual': 1000,
-            'day2': 2250,
-            'course': 600
+            'day1_presencial': 200000,
+            'day1_virtual': 100000,
+            'day2': 225000,
+            'course': 60000
         }
 
         # Factores de descuento por perfil (coinciden con frontend)
