@@ -222,7 +222,14 @@ def purchase():
             'course': 60000
         }
 
-        discount = 1.0 if role == 'specialist' else 0.7
+        # Factores de descuento por perfil (coinciden con frontend)
+        DISCOUNT_FACTORS = {
+            'specialist': 1.0,
+            'student': 0.8,    # Residente: 20% descuento
+            'nurse': 0.7,      # Enfermero: 30% descuento
+            'physio': 0.75     # Fisioterapeuta: 25% descuento
+        }
+        discount = DISCOUNT_FACTORS.get(role, 1.0)
 
         amount = 0
         days_selected = None

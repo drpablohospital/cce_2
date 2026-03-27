@@ -48,7 +48,7 @@
     display: block;
   }
 
-  /* Estilos de filas existentes */
+  /* Estilos comunes para filas (se mantienen para compatibilidad) */
   .row{display:grid;grid-template-columns:78px 1fr;border-bottom:0.5px solid var(--color-border-tertiary);}
   .row:last-child{border-bottom:none;}
   .time-col{padding:10px 12px 10px 0;display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-start;border-right:2px solid var(--color-border-tertiary);}
@@ -69,6 +69,30 @@
   .special-content{display:flex;align-items:center;gap:10px;}
   .special-label{font-size:14px;font-weight:700;color:var(--color-text-primary);}
   .special-sub{font-size:11px;color:var(--color-text-secondary);}
+
+  /* Nuevos estilos para Día 1 (dos columnas) */
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:0;border:0.5px solid var(--color-border-tertiary);border-radius:12px;overflow:hidden;}
+  .col-header{background:#D85A30;padding:8px 14px;text-align:center;}
+  .col-header span{font-family:'Bebas Neue',sans-serif;font-size:18px;color:#fff;letter-spacing:2px;}
+  .col{border-right:0.5px solid var(--color-border-tertiary);}
+  .col:last-child{border-right:none;}
+  .footer-row{display:flex;justify-content:space-between;align-items:center;padding-top:1rem;border-top:0.5px solid var(--color-border-tertiary);flex-wrap:wrap;gap:8px;margin-top:1rem;}
+  .footer-info{font-size:11px;color:var(--color-text-secondary);line-height:1.7;}
+  .footer-info span{font-weight:700;color:var(--color-text-primary);}
+
+  /* Nuevos estilos para Día 2 (talleres en cuadrícula) */
+  .meta-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;background:#f9fafb;border:0.5px solid var(--color-border-tertiary);border-radius:10px;padding:10px 16px;margin-bottom:1.25rem;}
+  .meta-item{font-size:12px;color:var(--color-text-secondary);line-height:1.5;}
+  .meta-item b{color:var(--color-text-primary);}
+  .inicio-badge{background:#D85A30;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;padding:5px 14px;border-radius:20px;}
+  .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border:0.5px solid var(--color-border-tertiary);border-radius:12px;overflow:hidden;}
+  .card{padding:18px 16px;border-right:0.5px solid var(--color-border-tertiary);border-bottom:0.5px solid var(--color-border-tertiary);display:flex;flex-direction:column;}
+  .card:nth-child(3n){border-right:none;}
+  .card:nth-child(4),.card:nth-child(5),.card:nth-child(6){border-bottom:none;}
+  .card-num{font-size:10px;font-weight:700;color:#D85A30;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+  .card-nombre{font-size:14px;font-weight:700;color:var(--color-text-primary);line-height:1.4;margin-bottom:8px;}
+  .card-desc{font-size:12px;color:var(--color-text-secondary);line-height:1.6;flex:1;}
+  .excl-badge{display:inline-block;background:#FBEAF0;color:#72243E;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase;margin-top:10px;align-self:flex-start;}
 </style>
 {% endblock %}
 
@@ -96,286 +120,241 @@
                 <div class="tab-btn" data-tab="day2">Día 2 – Talleres</div>
             </div>
 
-            <!-- Día 1: Conferencias (actualizado con la información de la imagen) -->
+            <!-- Día 1: Conferencias (nuevo diseño en dos columnas) -->
             <div id="day1" class="tab-pane active">
-                <!-- Conferencia 1 -->
-                <div class="row">
-                    <div class="time-col"><span class="time-start">08:30</span><span class="time-end">08:55</span></div>
-                    <div class="content-col">
-                        <div class="tag tag-conf">Conferencia 1</div>
-                        <div class="conf-tema">Código Mater: cuando cada segundo salva una vida</div>
-                        <div class="conf-ponente">Dr. Enrique Adalberto Adaya Leythe</div>
-                        <div class="conf-inst">Especialista en Medicina Crítica Obstétrica · Hospital Materno Infantil del Estado de México</div>
-                    </div>
-                </div>
+                <div class="two-col">
+                    <!-- Columna Mañana -->
+                    <div class="col">
+                        <div class="col-header"><span>Mañana</span></div>
 
-                <!-- Conferencia 2 -->
-                <div class="row">
-                    <div class="time-col"><span class="time-start">08:55</span><span class="time-end">09:20</span></div>
-                    <div class="content-col">
-                        <div class="tag tag-conf">Conferencia 2</div>
-                        <div class="conf-tema">Miocardiopatía en la paciente obstétrica</div>
-                        <div class="conf-ponente">Dra. Laura Belmont Rojo</div>
-                        <div class="conf-inst">Especialista en Cardiología · INPer</div>
-                    </div>
-                </div>
-
-                <!-- Conferencia 3 -->
-                <div class="row">
-                    <div class="time-col"><span class="time-start">09:20</span><span class="time-end">09:45</span></div>
-                    <div class="content-col">
-                        <div class="tag tag-conf">Conferencia 3</div>
-                        <div class="conf-tema">Complicaciones hepáticas en el embarazo</div>
-                        <div class="conf-ponente">Dr. José Antonio Hernández Pacheco</div>
-                        <div class="conf-inst">Especialista en Medicina Interna y Medicina Crítica · INPer</div>
-                    </div>
-                </div>
-
-                <!-- Conferencia 4 -->
-                <div class="row">
-                    <div class="time-col"><span class="time-start">09:45</span><span class="time-end">10:10</span></div>
-                    <div class="content-col">
-                        <div class="tag tag-conf">Conferencia 4</div>
-                        <div class="conf-tema">Preeclampsia: la tormenta silenciosa que hay que detener</div>
-                        <div class="conf-ponente">Dr. Christian Herrera Venegas</div>
-                        <div class="conf-inst">Especialista en Medicina Crítica Obstétrica · Hospital General de Gómez Palacio, Durango</div>
-                    </div>
-                </div>
-
-                <!-- Inauguración + Coffee break -->
-                <div class="row row-especial">
-                    <div class="time-col"><span class="time-start">10:10</span><span class="time-end">11:10</span></div>
-                    <div class="content-col">
-                        <div class="special-content">
-                            <div>
-                                <div class="tag tag-especial">Inauguración + Coffee break</div>
-                                <div class="special-label">Ceremonia de inauguración y receso</div>
-                                <div class="special-sub">60 min · Inauguración oficial + café</div>
+                        <div class="row">
+                            <div class="time-col"><span class="time-start">08:00</span><span class="time-end">08:30</span></div>
+                            <div class="content-col">
+                                <div class="tag tag-conf">Conferencia 1</div>
+                                <div class="conf-tema">Código Máter: cuando cada segundo salva una vida</div>
+                                <div class="conf-ponente">Dr. Enrique Adalberto Adaya Leythe</div>
+                                <div class="conf-inst">Especialista en Medicina Crítica Obstétrica, Hospital Materno Infantil del Estado de México</div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Conferencia 5 -->
-                <div class="row">
-                    <div class="time-col"><span class="time-start">11:10</span><span class="time-end">11:35</span></div>
-                    <div class="content-col">
-                        <div class="tag tag-conf">Conferencia 5</div>
-                        <div class="conf-tema">SDRA y ventilación mecánica en el embarazo</div>
-                        <div class="conf-ponente">Dr. Ernesto Deloya Tomas</div>
-                        <div class="conf-inst">Especialista en Medicina de Urgencias y Medicina Crítica · Director del HGSJR</div>
-                    </div>
-                </div>
+                        <div class="row">
+                            <div class="time-col"><span class="time-start">08:30</span><span class="time-end">09:00</span></div>
+                            <div class="content-col">
+                                <div class="tag tag-conf">Conferencia 2</div>
+                                <div class="conf-tema">Miocardiopatía en la paciente obstétrica</div>
+                                <div class="conf-ponente">Dra. Laura Belmont Rojo</div>
+                                <div class="conf-inst">Especialista en Cardiología, INPer</div>
+                            </div>
+                        </div>
 
-                <!-- Conferencia 6 -->
-                <div class="row">
-                    <div class="time-col"><span class="time-start">11:35</span><span class="time-end">12:00</span></div>
-                    <div class="content-col">
-                        <div class="tag tag-conf">Conferencia 6</div>
-                        <div class="conf-tema">Enfoque quirúrgico de la hemorragia obstétrica</div>
-                        <div class="conf-ponente">Dr. Gonzalo Pérez Barrera</div>
-                        <div class="conf-inst">Especialista en Ginecología y Obstetricia · HGSJR</div>
-                    </div>
-                </div>
+                        <div class="row">
+                            <div class="time-col"><span class="time-start">09:00</span><span class="time-end">09:30</span></div>
+                            <div class="content-col">
+                                <div class="tag tag-conf">Conferencia 3</div>
+                                <div class="conf-tema">Complicaciones hepáticas en el embarazo</div>
+                                <div class="conf-ponente">Dr. José Antonio Hernández Pacheco</div>
+                                <div class="conf-inst">Especialista en Medicina Interna y Medicina Crítica, INPer</div>
+                            </div>
+                        </div>
 
-                <!-- Conferencia 7 -->
-                <div class="row">
-                    <div class="time-col"><span class="time-start">12:00</span><span class="time-end">12:25</span></div>
-                    <div class="content-col">
-                        <div class="tag tag-conf">Conferencia 7</div>
-                        <div class="conf-tema">Tromboembolia pulmonar en el embarazo</div>
-                        <div class="conf-ponente">Dr. Freddy Mendoza Hernández</div>
-                        <div class="conf-inst">Especialista en Medicina Crítica Obstétrica · Hospital Materno Infantil, ISSEMYN</div>
-                    </div>
-                </div>
+                        <div class="row">
+                            <div class="time-col"><span class="time-start">09:30</span><span class="time-end">10:00</span></div>
+                            <div class="content-col">
+                                <div class="tag tag-conf">Conferencia 4</div>
+                                <div class="conf-tema">Preeclampsia: la tormenta silenciosa que hay que detener</div>
+                                <div class="conf-ponente">Dr. Christian Herrera Venegas</div>
+                                <div class="conf-inst">Especialista en Medicina Crítica Obstétrica, Hospital General de Gómez Palacio, Durango</div>
+                            </div>
+                        </div>
 
-                <!-- Conferencia 8 -->
-                <div class="row">
-                    <div class="time-col"><span class="time-start">12:25</span><span class="time-end">12:50</span></div>
-                    <div class="content-col">
-                        <div class="tag tag-conf">Conferencia 8</div>
-                        <div class="conf-tema">Sepsis en el embarazo</div>
-                        <div class="conf-ponente">Dr. Rafael Reyes Monge</div>
-                        <div class="conf-inst">Especialista en Medicina de Urgencias y Medicina Crítica · Hospital Maemo de Morelia</div>
-                    </div>
-                </div>
+                        <div class="row row-especial">
+                            <div class="time-col"><span class="time-start">10:00</span><span class="time-end">11:00</span></div>
+                            <div class="content-col">
+                                <div class="tag tag-especial">Inauguración + Coffee Break</div>
+                                <div class="special-label">Ceremonia oficial de apertura y receso</div>
+                                <div class="special-sub">60 min</div>
+                            </div>
+                        </div>
 
-                <!-- Receso comida -->
-                <div class="row row-comida">
-                    <div class="time-col"><span class="time-start">12:50</span><span class="time-end">14:50</span></div>
-                    <div class="content-col">
-                        <div class="special-content">
-                            <div>
+                        <div class="row">
+                            <div class="time-col"><span class="time-start">11:00</span><span class="time-end">11:30</span></div>
+                            <div class="content-col">
+                                <div class="tag tag-conf">Conferencia 5</div>
+                                <div class="conf-tema">SDRA y ventilación mecánica en el embarazo</div>
+                                <div class="conf-ponente">Dr. Ernesto Deloya Tomás</div>
+                                <div class="conf-inst">Especialista en Medicina de Urgencias y Medicina Crítica, Director del HGSJR</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="time-col"><span class="time-start">11:30</span><span class="time-end">12:00</span></div>
+                            <div class="content-col">
+                                <div class="tag tag-conf">Conferencia 6</div>
+                                <div class="conf-tema">Enfoque quirúrgico de la hemorragia obstétrica</div>
+                                <div class="conf-ponente">Dr. Gonzalo Pérez Barrera</div>
+                                <div class="conf-inst">Especialista en Ginecología y Obstetricia, HGSJR</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="time-col"><span class="time-start">12:00</span><span class="time-end">12:30</span></div>
+                            <div class="content-col">
+                                <div class="tag tag-conf">Conferencia 7</div>
+                                <div class="conf-tema">Tromboembolia pulmonar en el embarazo</div>
+                                <div class="conf-ponente">Dr. Freddy Mendoza Hernández</div>
+                                <div class="conf-inst">Especialista en Medicina Crítica Obstétrica, Hospital Materno Infantil, ISSEMYN</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="time-col"><span class="time-start">12:30</span><span class="time-end">13:00</span></div>
+                            <div class="content-col">
+                                <div class="tag tag-conf">Conferencia 8</div>
+                                <div class="conf-tema">Sepsis en el embarazo</div>
+                                <div class="conf-ponente">Dr. Rafael Reyes Monge</div>
+                                <div class="conf-inst">Especialista en Medicina de Urgencias y Medicina Crítica, Hospital Materno de Morelia</div>
+                            </div>
+                        </div>
+
+                        <div class="row row-comida">
+                            <div class="time-col"><span class="time-start">13:00</span><span class="time-end">14:00</span></div>
+                            <div class="content-col">
                                 <div class="tag tag-comida">Comida</div>
                                 <div class="special-label">Receso para comida</div>
-                                <div class="special-sub">2 horas</div>
+                                <div class="special-sub">1 hora</div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Conferencia 9 -->
-                <div class="row">
-                    <div class="time-col"><span class="time-start">14:50</span><span class="time-end">15:15</span></div>
-                    <div class="content-col">
-                        <div class="tag tag-conf">Conferencia 9</div>
-                        <div class="conf-tema">Embolia de líquido amniótico</div>
-                        <div class="conf-ponente">Dr. Miguel Ángel Nares Torices</div>
-                        <div class="conf-inst">Especialista en Medicina Crítica Obstétrica · Jefe UCI Adulto INPer</div>
-                    </div>
-                </div>
+                    <!-- Columna Tarde -->
+                    <div class="col">
+                        <div class="col-header"><span>Tarde</span></div>
 
-                <!-- Conferencia 10 -->
-                <div class="row">
-                    <div class="time-col"><span class="time-start">15:15</span><span class="time-end">15:40</span></div>
-                    <div class="content-col">
-                        <div class="tag tag-conf">Conferencia 10</div>
-                        <div class="conf-tema">Trombosis venosa cerebral en el embarazo</div>
-                        <div class="conf-ponente">Dr. Orlando Rubén Pérez Nieto</div>
-                        <div class="conf-inst">Especialista en Medicina de Urgencias y Medicina Crítica · UCI Hospital General San Juan del Río</div>
-                    </div>
-                </div>
-
-                <!-- Conferencia 11 -->
-                <div class="row">
-                    <div class="time-col"><span class="time-start">15:40</span><span class="time-end">16:05</span></div>
-                    <div class="content-col">
-                        <div class="tag tag-conf">Conferencia 11</div>
-                        <div class="conf-tema">Enfoque médico de la hemorragia obstétrica</div>
-                        <div class="conf-ponente">Dr. Ignacio Rodríguez Guevara</div>
-                        <div class="conf-inst">Especialista en Anestesiología y Medicina Crítica · HGSJR</div>
-                    </div>
-                </div>
-
-                <!-- Coffee break -->
-                <div class="row row-break">
-                    <div class="time-col"><span class="time-start">16:05</span><span class="time-end">16:35</span></div>
-                    <div class="content-col">
-                        <div class="special-content">
-                            <div>
-                                <div class="tag tag-break">Coffee break</div>
-                                <div class="special-label">Segundo receso</div>
-                                <div class="special-sub">30 min</div>
+                        <div class="row">
+                            <div class="time-col"><span class="time-start">14:00</span><span class="time-end">14:30</span></div>
+                            <div class="content-col">
+                                <div class="tag tag-conf">Conferencia 9</div>
+                                <div class="conf-tema">Embolia de líquido amniótico</div>
+                                <div class="conf-ponente">Dr. Miguel Ángel Nares Torices</div>
+                                <div class="conf-inst">Especialista en Medicina Crítica Obstétrica, INPer</div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Conferencia 12 -->
-                <div class="row">
-                    <div class="time-col"><span class="time-start">16:35</span><span class="time-end">17:00</span></div>
-                    <div class="content-col">
-                        <div class="tag tag-conf">Conferencia 12</div>
-                        <div class="conf-tema">Coagulopatía obstétrica aguda</div>
-                        <div class="conf-ponente">Dr. Samuel Vargas Trujillo</div>
-                        <div class="conf-inst">Especialista en Hematología · INPer</div>
-                    </div>
-                </div>
+                        <div class="row">
+                            <div class="time-col"><span class="time-start">14:30</span><span class="time-end">15:00</span></div>
+                            <div class="content-col">
+                                <div class="tag tag-conf">Conferencia 10</div>
+                                <div class="conf-tema">Trombosis venosa cerebral en el embarazo</div>
+                                <div class="conf-ponente">Dr. Orlando Rubén Pérez Nieto</div>
+                                <div class="conf-inst">Especialista en Medicina de Urgencias y Medicina Crítica, HGSJR</div>
+                            </div>
+                        </div>
 
-                <!-- Conferencia 13 -->
-                <div class="row">
-                    <div class="time-col"><span class="time-start">17:00</span><span class="time-end">17:25</span></div>
-                    <div class="content-col">
-                        <div class="tag tag-conf">Conferencia 13</div>
-                        <div class="conf-tema">Trauma en la embarazada</div>
-                        <div class="conf-ponente">Dr. Javier Edmundo Herrera Villalobos</div>
-                        <div class="conf-inst">Especialista en Medicina Crítica Obstétrica · Director del Hospital General Valle de Bravo ISEM</div>
-                    </div>
-                </div>
+                        <div class="row">
+                            <div class="time-col"><span class="time-start">15:00</span><span class="time-end">15:30</span></div>
+                            <div class="content-col">
+                                <div class="tag tag-conf">Conferencia 11</div>
+                                <div class="conf-tema">Enfoque médico de la hemorragia obstétrica</div>
+                                <div class="conf-ponente">Dr. Ignacio Rodríguez Guevara</div>
+                                <div class="conf-inst">Especialista en Anestesiología y Medicina Crítica, HGSJR</div>
+                            </div>
+                        </div>
 
-                <!-- Clausura -->
-                <div class="row row-especial">
-                    <div class="time-col"><span class="time-start">17:25</span><span class="time-end">17:40</span></div>
-                    <div class="content-col">
-                        <div class="special-content">
-                            <div>
+                        <div class="row row-break">
+                            <div class="time-col"><span class="time-start">15:30</span><span class="time-end">15:45</span></div>
+                            <div class="content-col">
+                                <div class="tag tag-break">Coffee Break</div>
+                                <div class="special-label">Receso</div>
+                                <div class="special-sub">15 min</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="time-col"><span class="time-start">15:45</span><span class="time-end">16:15</span></div>
+                            <div class="content-col">
+                                <div class="tag tag-conf">Conferencia 12</div>
+                                <div class="conf-tema">Coagulopatía obstétrica aguda</div>
+                                <div class="conf-ponente">Dr. Samuel Vargas Trujillo</div>
+                                <div class="conf-inst">Especialista en Hematología, INPer</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="time-col"><span class="time-start">16:15</span><span class="time-end">16:45</span></div>
+                            <div class="content-col">
+                                <div class="tag tag-conf">Conferencia 13</div>
+                                <div class="conf-tema">Trauma en la embarazada</div>
+                                <div class="conf-ponente">Dr. Javier Edmundo Herrera Villalobos</div>
+                                <div class="conf-inst">Especialista en Medicina Crítica Obstétrica, Director del Hospital General Valle de Bravo</div>
+                            </div>
+                        </div>
+
+                        <div class="row row-especial">
+                            <div class="time-col"><span class="time-start">16:45</span><span class="time-end"></span></div>
+                            <div class="content-col">
                                 <div class="tag tag-especial">Clausura</div>
                                 <div class="special-label">Ceremonia de clausura y entrega de constancias</div>
-                                <div class="special-sub">15 min · Fin del simposio</div>
+                                <div class="special-sub">Fin del simposio</div>
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <div class="footer-row">
+                    <div class="footer-info"><span>Teléfono:</span> 442-134-3184 &nbsp;·&nbsp; <span>Correo:</span> medicinacriticasjdr@gmail.com</div>
+                    <div class="footer-info" style="text-align:right;">Avalado por Secretaría de Salud · SESEQ</div>
                 </div>
             </div>
 
-            <!-- Día 2: Talleres (información real de la imagen) -->
+            <!-- Día 2: Talleres (nuevo diseño en cuadrícula) -->
             <div id="day2" class="tab-pane">
-                <!-- Información general del día -->
-                <div class="bg-indigo-50 p-4 rounded-lg mb-4">
-                    <p class="text-center font-bold text-indigo-800">✨ Los talleres se desarrollarán en módulos simultáneos a lo largo del día ✨</p>
-                    <p class="text-center text-sm">Cupo total: <strong>36 personas</strong> | Inicio: <strong>09:00 hrs</strong></p>
-                    <p class="text-center text-xs mt-1">*El cupo es limitado. Las inscripciones se cerrarán cuando se alcance el máximo.</p>
+                <div class="meta-bar">
+                    <div class="meta-item">Se desarrollarán en <b>módulos simultáneos con rotación</b>,<br>abarcando todos los talleres a lo largo del día. <b>Cupo total: 36 personas.</b></div>
+                    <div class="inicio-badge">Inicio: 09:00 hrs</div>
                 </div>
 
-                <!-- Taller 1 -->
-                <div class="row">
-                    <div class="time-col"><span class="time-start">Taller</span><span class="time-end">Simultáneo</span></div>
-                    <div class="content-col">
-                        <div class="tag tag-conf">Taller 1</div>
-                        <div class="conf-tema">RCP en el embarazo</div>
-                        <div class="conf-ponente">Equipo de simulación</div>
-                        <div class="conf-inst">Entrena con simulación de alta fidelidad la reanimación cardiopulmonar adaptada a los cambios fisiológicos del embarazo. Aprende a tomar decisiones críticas en los primeros minutos que marcan la diferencia entre la vida y la muerte de dos pacientes a la vez.</div>
+                <div class="grid">
+                    <div class="card">
+                        <div class="card-num">Taller 01</div>
+                        <div class="card-nombre">RCP en el embarazo</div>
+                        <div class="card-desc">Entrena con simulación de alta fidelidad la reanimación cardiopulmonar adaptada a los cambios fisiológicos del embarazo. Aprende a tomar decisiones críticas en los primeros minutos que marcan la diferencia entre la vida y la muerte de dos pacientes a la vez.</div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-num">Taller 02</div>
+                        <div class="card-nombre">Control de hemorragia obstétrica</div>
+                        <div class="card-desc">Domina las técnicas más actuales para contener la hemorragia obstétrica masiva: desde el manejo del balón de Bakri hasta la compresión aórtica y el empaquetamiento pélvico. Práctica hands-on en escenarios de urgencia real.</div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-num">Taller 03</div>
+                        <div class="card-nombre">Manejo de preeclampsia severa — Código Mega Obstétrico</div>
+                        <div class="card-desc">Simulación dinámica del Código Mega Obstétrico: activa protocolos, coordina al equipo multidisciplinario y toma decisiones bajo presión. Un taller inmersivo que transforma el conocimiento teórico en acción clínica inmediata.</div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-num">Taller 04</div>
+                        <div class="card-nombre">Ventilación mecánica en obstetricia</div>
+                        <div class="card-desc">Manejo práctico del ventilador en la paciente obstétrica críticamente enferma. Aprende a ajustar parámetros, interpretar curvas y tomar decisiones ventilatorias en escenarios de SDRA, neumonía grave y paro respiratorio durante el embarazo.</div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-num">Taller 05</div>
+                        <div class="card-nombre">Ecografía crítica en la embarazada</div>
+                        <div class="card-desc">Adquiere habilidades en ultrasonido point-of-care aplicado a la paciente obstétrica grave. Evalúa función cardiaca, derrame pleural, líquido libre y bienestar fetal en tiempo real. Una herramienta que extiende tus ojos clínicos al lado de la cama.</div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-num">Taller 06</div>
+                        <div class="card-nombre">Entrenamiento muscular inspiratorio y ejercicio post parto</div>
+                        <div class="card-desc">Taller pionero en México enfocado en la rehabilitación respiratoria y el reacondicionamiento físico de la paciente obstétrica. Aprende protocolos de entrenamiento muscular inspiratorio basados en evidencia para acelerar la recuperación y mejorar la calidad de vida post parto.</div>
+                        <div class="excl-badge">Exclusivo para fisioterapeutas</div>
                     </div>
                 </div>
 
-                <!-- Taller 2 -->
-                <div class="row">
-                    <div class="time-col"><span class="time-start">Taller</span><span class="time-end">Simultáneo</span></div>
-                    <div class="content-col">
-                        <div class="tag tag-conf">Taller 2</div>
-                        <div class="conf-tema">Control de hemorragia obstétrica</div>
-                        <div class="conf-ponente">Dr. Gonzalo Pérez Barrera / Dr. Ignacio Rodríguez Guevara</div>
-                        <div class="conf-inst">Domina las técnicas más actuales para contener la hemorragia obstétrica masiva: desde el manejo del balón de Bakri hasta la compresión aórtica y el empaquetamiento pélvico. Práctica hands-on en escenarios de urgencia real.</div>
-                    </div>
-                </div>
-
-                <!-- Taller 3 -->
-                <div class="row">
-                    <div class="time-col"><span class="time-start">Taller</span><span class="time-end">Simultáneo</span></div>
-                    <div class="content-col">
-                        <div class="tag tag-conf">Taller 3</div>
-                        <div class="conf-tema">Manejo de preeclampsia: Código Mega Obstétrico</div>
-                        <div class="conf-ponente">Dr. Christian Herrera Venegas</div>
-                        <div class="conf-inst">Simulación dinámica del Código Mega Obstétrico: activa protocolos, coordina al equipo multidisciplinario y toma decisiones bajo presión. Un taller inmersivo que transforma el conocimiento teórico en acción clínica inmediata.</div>
-                    </div>
-                </div>
-
-                <!-- Taller 4 -->
-                <div class="row">
-                    <div class="time-col"><span class="time-start">Taller</span><span class="time-end">Simultáneo</span></div>
-                    <div class="content-col">
-                        <div class="tag tag-conf">Taller 4</div>
-                        <div class="conf-tema">Ventilación mecánica en obstetricia</div>
-                        <div class="conf-ponente">Dr. Ernesto Deloya Tomás / Dr. Orlando Rubén Pérez Nieto</div>
-                        <div class="conf-inst">Manejo práctico del ventilador en la paciente obstétrica críticamente enferma. Aprende a ajustar parámetros, interpretar curvas y tomar decisiones ventilatorias en escenarios de SDRA, neumonía grave y paro respiratorio durante el embarazo.</div>
-                    </div>
-                </div>
-
-                <!-- Taller 5 -->
-                <div class="row">
-                    <div class="time-col"><span class="time-start">Taller</span><span class="time-end">Simultáneo</span></div>
-                    <div class="content-col">
-                        <div class="tag tag-conf">Taller 5</div>
-                        <div class="conf-tema">Ecografía crítica en la embarazada</div>
-                        <div class="conf-ponente">Dra. Laura Belmont Rojo / Dr. Miguel Ángel Nares Torices</div>
-                        <div class="conf-inst">Adquiere habilidades en ultrasonido point-of-care aplicado a la paciente obstétrica grave. Evalúa función cardiaca, derrame pleural, líquido libre y bienestar fetal en tiempo real. Una herramienta que extiende tus ojos clínicos al lado de la cama.</div>
-                    </div>
-                </div>
-
-                <!-- Taller 6 (Exclusivo Fisioterapeutas) -->
-                <div class="row">
-                    <div class="time-col"><span class="time-start">Taller</span><span class="time-end">Exclusivo</span></div>
-                    <div class="content-col">
-                        <div class="tag tag-especial">Taller 6 · Fisioterapia</div>
-                        <div class="conf-tema">Entrenamiento muscular inspiratorio y ejercicio post parto</div>
-                        <div class="conf-ponente">Servicio de Fisioterapia</div>
-                        <div class="conf-inst">Taller pionero en México enfocado en la rehabilitación respiratoria y el reacondicionamiento físico de la paciente obstétrica. Aprende protocolos de entrenamiento muscular inspiratorio basados en evidencia para acelerar la recuperación y mejorar la calidad de vida post parto.</div>
-                    </div>
-                </div>
-
-                <!-- Nota de cupo -->
-                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 mt-4 text-sm text-yellow-800">
-                    ⚠️ <strong>Cupo limitado a 36 personas.</strong> Los talleres se asignarán por orden de inscripción. Se dará prioridad a quienes hayan registrado su asistencia al día de talleres.
+                <div class="footer-row">
+                    <div class="footer-info"><span>Correo:</span> medicinacriticasjdr@gmail.com</div>
+                    <div class="footer-info" style="text-align:right;">Avalado por Secretaría de Salud · SESEQ</div>
                 </div>
             </div>
         </div>
