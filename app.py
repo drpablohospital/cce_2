@@ -487,7 +487,20 @@ def admin_dashboard():
     elif status == 'pending':
         query = query.filter_by(payment_status='pending')
     registrations = query.order_by(Registration.created_at.desc()).all()
-    return render_template('admin/dashboard.html', registrations=registrations, status_filter=status, background_image=get_random_background())
+
+    # Cargar los usuarios asociados a cada registro de forma explícita
+    registrations_with_users = []
+    for reg in registrations:
+        user = User.query.get(reg.user_id)
+        registrations_with_users.append((reg, user))
+
+    # Imprimir en logs cuántos registros se encontraron (útil para depuración)
+    print(f"[ADMIN] Total registros encontrados: {len(registrations)}")
+
+    return render_template('admin/dashboard.html',
+                           registrations_with_users=registrations_with_users,
+                           status_filter=status,
+                           background_image=get_random_background())
 
 @app.route('/admin/export/csv')
 @admin_login_required
@@ -550,6 +563,23 @@ def admin_messages():
 def admin_subscribers():
     subscribers = NewsletterSubscriber.query.order_by(NewsletterSubscriber.created_at.desc()).all()
     return render_template('admin/subscribers.html', subscribers=subscribers, background_image=get_random_background())
+
+# Ruta de depuración para verificar datos en la base de datos
+@app.route('/admin/debug')
+@admin_login_required
+def admin_debug():
+    registrations = Registration.query.all()
+    users = User.query.all()
+    return jsonify({
+        'registrations': [{
+            'id': r.id,
+            'user_id': r.user_id,
+            'payment_status': r.payment_status,
+            'amount': r.amount,
+            'created_at': r.created_at.isoformat() if r.created_at else None
+        } for r in registrations],
+        'users': [{'id': u.id, 'name': u.name, 'email': u.email} for u in users]
+    })
 
 if __name__ == '__main__':
     app.run(debug=True)
