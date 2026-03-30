@@ -2,14 +2,18 @@ import os
 import stripe
 import qrcode
 import random
+import csv
+import io
+import zipfile
 from glob import glob
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file, jsonify
+from functools import wraps
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
+from werkzeug.security import check_password_hash, generate_password_hash
 from config import Config
 from models import db, User, Registration, NewsletterSubscriber, ContactMessage
 from datetime import datetime
-import io
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib.utils import ImageReader
@@ -439,6 +443,113 @@ def carousel_images():
         if os.path.splitext(filename)[1].lower() in extensions:
             images.append(url_for('static', filename=f'images/carrusel/{filename}'))
     return jsonify(images)
+
+# ------------------------- ADMIN PANEL -------------------------
+# Configuración de credenciales (usa variables de entorno en producción)
+ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
+ADMIN_PASSWORD_HASH = generate_password_hash(os.environ.get('ADMIN_PASSWORD', 'admin123'))
+
+def admin_login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('admin_logged_in'):
+            flash('Por favor inicia sesión para acceder al panel.', 'warning')
+            return redirect(url_for('admin_login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if username == ADMIN_USERNAME and check_password_hash(ADMIN_PASSWORD_HASH, password):
+            session['admin_logged_in'] = True
+            flash('Bienvenido al panel de administración.', 'success')
+            return redirect(url_for('admin_dashboard'))
+        else:
+            flash('Credenciales incorrectas.', 'danger')
+    return render_template('admin/login.html', background_image=get_random_background())
+
+@app.route('/admin/logout')
+def admin_logout():
+    session.pop('admin_logged_in', None)
+    flash('Has cerrado sesión.', 'info')
+    return redirect(url_for('index'))
+
+@app.route('/admin/dashboard')
+@admin_login_required
+def admin_dashboard():
+    status = request.args.get('status', 'all')
+    query = Registration.query
+    if status == 'paid':
+        query = query.filter_by(payment_status='paid')
+    elif status == 'pending':
+        query = query.filter_by(payment_status='pending')
+    registrations = query.order_by(Registration.created_at.desc()).all()
+    return render_template('admin/dashboard.html', registrations=registrations, status_filter=status, background_image=get_random_background())
+
+@app.route('/admin/export/csv')
+@admin_login_required
+def export_csv():
+    registrations = Registration.query.all()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['ID', 'Usuario', 'Email', 'Rol', 'Tipo ticket', 'Días', 'Virtual Día1', 'Curso', 'Monto', 'Estado pago', 'Fecha creación', 'QR'])
+    for reg in registrations:
+        user = User.query.get(reg.user_id)
+        writer.writerow([
+            reg.id, user.name, user.email, user.role, reg.ticket_type,
+            reg.days, reg.day1_virtual, reg.course, reg.amount,
+            reg.payment_status, reg.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            reg.qr_code_path
+        ])
+    output.seek(0)
+    return send_file(io.BytesIO(output.getvalue().encode('utf-8')),
+                     mimetype='text/csv',
+                     as_attachment=True,
+                     download_name=f'registros_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv')
+
+@app.route('/admin/export/qr')
+@admin_login_required
+def export_qr():
+    qr_dir = os.path.join(app.static_folder, 'qrcodes')
+    memory_file = io.BytesIO()
+    with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for filename in os.listdir(qr_dir):
+            if filename.endswith('.png'):
+                file_path = os.path.join(qr_dir, filename)
+                zf.write(file_path, arcname=filename)
+    memory_file.seek(0)
+    return send_file(memory_file,
+                     mimetype='application/zip',
+                     as_attachment=True,
+                     download_name=f'qrcodes_{datetime.now().strftime("%Y%m%d_%H%M%S")}.zip')
+
+@app.route('/admin/backup')
+@admin_login_required
+def backup_db():
+    db_uri = app.config['SQLALCHEMY_DATABASE_URI']
+    if db_uri.startswith('sqlite:///'):
+        db_path = db_uri.replace('sqlite:///', '')
+        if os.path.exists(db_path):
+            return send_file(db_path,
+                             as_attachment=True,
+                             download_name=f'backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.db')
+    flash('No se pudo localizar el archivo de base de datos.', 'danger')
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/messages')
+@admin_login_required
+def admin_messages():
+    messages = ContactMessage.query.order_by(ContactMessage.created_at.desc()).all()
+    return render_template('admin/messages.html', messages=messages, background_image=get_random_background())
+
+@app.route('/admin/subscribers')
+@admin_login_required
+def admin_subscribers():
+    subscribers = NewsletterSubscriber.query.order_by(NewsletterSubscriber.created_at.desc()).all()
+    return render_template('admin/subscribers.html', subscribers=subscribers, background_image=get_random_background())
 
 if __name__ == '__main__':
     app.run(debug=True)
