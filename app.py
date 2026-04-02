@@ -581,5 +581,87 @@ def admin_debug():
         'users': [{'id': u.id, 'name': u.name, 'email': u.email} for u in users]
     })
 
+# ------------------------- IMPORTAR CSV (NUEVA FUNCIÓN) -------------------------
+@app.route('/admin/import_csv', methods=['GET', 'POST'])
+@admin_login_required
+def admin_import_csv():
+    if request.method == 'POST':
+        if 'csv_file' not in request.files:
+            flash('No se seleccionó ningún archivo.', 'danger')
+            return redirect(request.url)
+
+        file = request.files['csv_file']
+        if file.filename == '':
+            flash('No se seleccionó ningún archivo.', 'danger')
+            return redirect(request.url)
+
+        if not file.filename.endswith('.csv'):
+            flash('Formato no soportado. Sube un archivo CSV.', 'danger')
+            return redirect(request.url)
+
+        # Leer CSV
+        from io import TextIOWrapper
+        csv_data = TextIOWrapper(file, encoding='utf-8')
+        reader = csv.DictReader(csv_data)
+
+        registros_importados = 0
+        errores = []
+
+        for row in reader:
+            email = row.get('Email', '').strip().lower()
+            if not email:
+                errores.append(f"Fila sin email: {row}")
+                continue
+
+            # Buscar o crear usuario
+            user = User.query.filter_by(email=email).first()
+            if not user:
+                nombre = row.get('Usuario', '').strip() or email.split('@')[0]
+                rol = row.get('Rol', 'specialist').strip()
+                user = User(name=nombre, email=email, role=rol)
+                db.session.add(user)
+                db.session.commit()
+
+            # Verificar si ya existe un registro para este usuario (evitar duplicados)
+            monto = int(float(row.get('Monto_centavos', 0)))
+            days = row.get('Días', '').strip() or None
+            if days == '':
+                days = None
+            existing = Registration.query.filter_by(user_id=user.id, amount=monto, days=days).first()
+            if existing:
+                continue
+
+            # Crear registro
+            ticket_type = row.get('Tipo ticket', 'days')
+            day1_virtual = row.get('Virtual Día1', 'False').lower() == 'true'
+            course = row.get('Curso', 'False').lower() == 'true'
+            payment_status = row.get('Estado pago', 'pending').lower()
+            created_at_str = row.get('Fecha creación', '')
+            created_at = None
+            if created_at_str:
+                try:
+                    created_at = datetime.strptime(created_at_str, '%Y-%m-%d %H:%M:%S')
+                except:
+                    pass
+
+            reg = Registration(
+                user_id=user.id,
+                ticket_type=ticket_type,
+                days=days,
+                day1_virtual=day1_virtual,
+                course=course,
+                amount=monto,
+                payment_status=payment_status,
+                created_at=created_at or datetime.utcnow()
+            )
+            db.session.add(reg)
+            registros_importados += 1
+
+        db.session.commit()
+        flash(f'Importación completada. Se importaron {registros_importados} registros. Errores: {len(errores)}', 'success')
+        return redirect(url_for('admin_dashboard'))
+
+    return render_template('admin/import_csv.html', background_image=get_random_background())
+
 if __name__ == '__main__':
     app.run(debug=True)

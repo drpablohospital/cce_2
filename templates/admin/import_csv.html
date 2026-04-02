@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h2>Importar registros desde CSV</h2>
+        </div>
+        <div class="card-body">
+            <p>Sube el archivo CSV unificado (generado con los datos de Stripe y el dashboard antiguo).</p>
+            <p>El CSV debe contener las columnas: <strong>Usuario, Email, Rol, Tipo ticket, Días, Virtual Día1, Curso, Monto_centavos, Estado pago, Fecha creación</strong>.</p>
+            <form method="POST" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="csv_file" class="form-label">Archivo CSV</label>
+                    <input type="file" class="form-control" id="csv_file" name="csv_file" accept=".csv" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Importar</button>
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
