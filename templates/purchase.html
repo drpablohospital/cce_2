@@ -53,9 +53,9 @@
                         <label><input type="radio" name="day1_modality" value="virtual" id="day1Virtual"> Virtual</label>
                     </div>
                     <br>
-                    <label class="inline-flex items-center">
-                        <input type="checkbox" name="day2" value="1" id="day2Checkbox">
-                        <span class="ml-2">Día 2 (Talleres presenciales)</span>
+                    <label class="inline-flex items-center opacity-50 cursor-not-allowed" title="Día 2 agotado">
+                        <input type="checkbox" name="day2" value="1" id="day2Checkbox" disabled>
+                        <span class="ml-2">Día 2 (Talleres presenciales) - <span class="text-red-600 font-semibold">AGOTADO</span></span>
                     </label>
                 </div>
             </div>
@@ -113,7 +113,7 @@
 
     // Elementos del DOM
     const day1Checkbox = document.getElementById('day1Checkbox');
-    const day2Checkbox = document.getElementById('day2Checkbox');
+    // const day2Checkbox = document.getElementById('day2Checkbox'); // Día 2 agotado - deshabilitado
     const courseCheckbox = document.getElementById('courseCheckbox');
     const roleSelect = document.getElementById('roleSelect');
     const day1Presencial = document.getElementById('day1Presencial');
@@ -127,7 +127,7 @@
     });
     day1Presencial.addEventListener('change', actualizarPrecio);
     day1Virtual.addEventListener('change', actualizarPrecio);
-    day2Checkbox.addEventListener('change', actualizarPrecio);
+    // day2Checkbox.addEventListener('change', actualizarPrecio); // Día 2 agotado
     courseCheckbox.addEventListener('change', actualizarPrecio);
     roleSelect.addEventListener('change', actualizarPrecio);
 
@@ -142,19 +142,11 @@
         let totalCentavos = 0;
         let totalOriginalCentavos = 0; // precio sin descuento de perfil (para mostrar oferta)
 
-        // Calcular precio base de días
-        if (day1 && day2) {
-            const precioDay1 = day1VirtualSelected ? PRECIOS_BASE['day1_virtual'] : PRECIOS_BASE['day1_presencial'];
-            totalCentavos += precioDay1;
-            totalCentavos += PRECIOS_BASE['day2'];
-            totalOriginalCentavos += precioDay1 + PRECIOS_BASE['day2'];
-        } else if (day1) {
+        // Calcular precio base de días (Día 2 agotado - solo disponible Día 1)
+        if (day1) {
             const precioDay1 = day1VirtualSelected ? PRECIOS_BASE['day1_virtual'] : PRECIOS_BASE['day1_presencial'];
             totalCentavos += precioDay1;
             totalOriginalCentavos += precioDay1;
-        } else if (day2) {
-            totalCentavos += PRECIOS_BASE['day2'];
-            totalOriginalCentavos += PRECIOS_BASE['day2'];
         }
 
         // Aplicar descuento por perfil a los días

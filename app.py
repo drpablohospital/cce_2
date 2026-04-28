@@ -235,19 +235,18 @@ def purchase():
         }
         discount = DISCOUNT_FACTORS.get(role, 1.0)
 
+        # Validación: Día 2 está agotado - rechazar si intentan pagar
+        if day2:
+            flash('Lo sentimos, el Día 2 (Talleres) está agotado. Solo están disponibles Día 1 y Curso de Fisioterapia.', 'warning')
+            return redirect(url_for('purchase'))
+
         amount = 0
         days_selected = None
 
-        if day1 and day2:
-            days_selected = "both"
-            day1_price = PRICES['day1_virtual'] if day1_virtual else PRICES['day1_presencial']
-            amount = day1_price + PRICES['day2']
-        elif day1:
+        # Día 2 agotado - solo se puede comprar Día 1 + Curso
+        if day1:
             days_selected = "day1"
             amount = PRICES['day1_virtual'] if day1_virtual else PRICES['day1_presencial']
-        elif day2:
-            days_selected = "day2"
-            amount = PRICES['day2']
         else:
             days_selected = None
 
